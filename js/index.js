@@ -1,12 +1,20 @@
+const params = new URLSearchParams(window.location.search)
+let noteStorage = [];
+document.addEventListener('DOMContentLoaded', function() {
+  fetch('http://localhost:5500/notes')
+      .then(response => response.json())
+      .then(data => {
+        noteStorage = data;
+        console.log(noteStorage);
+      })
+      .catch(error => console.log(error));
+})
 window.addEventListener('load', function () {
-  const $$ = this.document.querySelectorAll.bind(this.document)
-  let noteStorage = []
-
+  const $$ = this.document.querySelectorAll.bind(this.document);
   const app = {
     getDataFromLS: function () {
-      if (sessionStorage.getItem('notes')) {
-        noteStorage = JSON.parse(sessionStorage.getItem('notes'))
-      }
+      // noteStorage = JSON.parse(noteStorage)
+      // console.log(noteStorage);
     },
     renderNoteFromLS: function () {
       const tabContents = [...$$('.tab-content')]
@@ -22,6 +30,7 @@ window.addEventListener('load', function () {
 
       noteStorage.sort((a, b) => b.lastUpdate - a.lastUpdate)
       noteStorage.forEach(item => {
+        
         const d = new Date(item.lastUpdate)
         const date = `${d.toLocaleDateString('vi-VI')} ${d.toLocaleTimeString(
           'vi-VI'
@@ -150,8 +159,13 @@ window.addEventListener('load', function () {
         }
         if (e.target.matches('.link-item.remove')) {
           const noteId = e.target.parentNode.getAttribute('data-id')
-          const note = noteStorage.find(item => item.id === noteId)
-          const lastUpdate = new Date(note.lastUpdate).toLocaleString('vi-VI')
+          let note = [];
+          noteStorage.forEach(item => {
+            if (item.id === noteId){
+              note = item;
+            }
+          })
+          const lastUpdate = Date.now();
 
           const alertRemoveHtml = `<div class="alert-overlay">
             <div class="alert-wrapper">
@@ -169,20 +183,19 @@ window.addEventListener('load', function () {
             </div>
           </div>`
 
-          document.body.insertAdjacentHTML('beforeend', alertRemoveHtml)
+          document.body.insertAdjacentHTML('beforeend', alertRemoveHtml);
         }
         if (e.target.matches('.btn-item.delete-btn')) {
-          document.body.removeChild(e.target.parentNode.parentNode.parentNode)
           const noteId = e.target.getAttribute('data-id')
-          noteStorage = noteStorage.filter(val => val.id !== noteId)
-          sessionStorage.setItem('notes', JSON.stringify(noteStorage))
-
-          const notes = [...$$('.note-wrapper')]
-          notes.forEach(item => {
-            if (item.getAttribute('data-id') === noteId) {
-              item.parentNode.removeChild(item)
-            }
+          this.fetch('http://localhost:5500/delete', {
+            headers: {
+              'Content-type': 'application/json' 
+            },
+            method: 'POST',
+            body: JSON.stringify({id: noteId})
           })
+          .then(res => res.json())
+          .then(data => console.log(data));
         }
       })
     },
@@ -221,9 +234,12 @@ window.addEventListener('load', function () {
       document.body.insertAdjacentHTML('beforeend', viewNodeHtml)
     },
     run: function () {
-      const _this = this
-
+      const _this = this;
+      
       _this.getDataFromLS()
+      // const data = JSON.parse(noteStorage);
+      // const tmp = noteStorage.find(item => item.id === 11);
+      // console.log(tmp);
       _this.switchTabNote(_this.renderNoteFromLS)
       _this.renderNoteFromLS()
       _this.featureHandle(
@@ -234,5 +250,5 @@ window.addEventListener('load', function () {
       )
     },
   }
-  app.run()
+  app.run();
 })

@@ -1,12 +1,14 @@
 import express from 'express';
-import { getAllnotes, getNote, createNote } from './database.js';
+import cors from 'cors';
+import { getAllnotes, getNote, createNote, updateNote, deleteNote} from './database.js';
 
-const app = express()
+const app = express();
 
-app.use(express.json())
+app.use(cors());
+app.use(express.json());
 
 app.get("/notes", async (req, res) => {
-    const note = await getAllnotes()
+    const note = await getAllnotes();
     res.send(note)
 })
 
@@ -16,10 +18,25 @@ app.get("/notes/:id", async (req, res) => {
     res.send(note)
 })
 
-app.post("/notes", async (req, res) => {
-    const {title, content} = req.body
-    const note = await createNote(title, content)
-    res.status(201).send(note)
+app.post("/insert", async (req, res) => {
+    console.log(req.body);
+    const {title, content} = req.body;
+    const note = await createNote(title, content);
+    res.status(201).send(note);
+})
+
+app.post("/update", async (req, res) => {
+    console.log(req.body);
+    const {id, title, content} = req.body;
+    const note = await updateNote(id, title, content);
+    res.status(201).send(note);
+})
+
+app.post("/delete", async (req, res) => {
+    console.log(req.body);
+    const {id} = req.body;
+    const note = await deleteNote(id);
+    res.status(201).send(note);
 })
 
 app.use((err, req, res, next) => {
@@ -27,6 +44,6 @@ app.use((err, req, res, next) => {
     res.status(500).send('Sth broke!')
 })
 
-app.listen(5500, () => {
-    console.log('Server is running on port 5000')
+app.listen(process.env.PORT, () => {
+    console.log('Server is running on port', process.env.PORT)
 })

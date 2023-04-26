@@ -28,5 +28,22 @@ export async function createNote(title, content){
     INSERT INTO notes(title, content)
     VALUE (?,?)
     `, [title, content])
-    return result
+    return result;
+}
+
+export async function updateNote(id, title, content){
+    const [result] = await pool.query(`
+    UPDATE notes
+    SET title = ?, content = ?
+    WHERE id = ?
+    `, [title, content, id])
+    return result;
+}
+
+export async function deleteNote(id){
+    const [result] = await pool.query(`
+    DELETE FROM notes
+    WHERE id = ?
+    `, [id])
+    return result;
 }
